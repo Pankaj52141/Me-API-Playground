@@ -10,19 +10,18 @@ const pool = new Pool({
 
 const seedData = async () => {
   try {
-    // ===== COMMENTED OUT SECTIONS =====
     // All other seeding is commented out
     // Uncomment the sections below if you need to seed other tables
 
-    /*
+    
     // Insert sample user
-    const hashedPassword = await bcrypt.hash('password', 10);
+    const hashedPassword = await bcrypt.hash('*******', 10);
     await pool.query(`
       INSERT INTO users (username, password_hash)
-      VALUES ('admin', $1)
+      VALUES ('*****', $1)
       ON CONFLICT (username) DO NOTHING
     `, [hashedPassword]);
-
+/*/
     // Insert sample profile
     await pool.query(`
       INSERT INTO profile (name, email, education)
@@ -148,19 +147,18 @@ const seedData = async () => {
     }
     */
 
-    // ===== ONLY THIS SECTION RUNS: UPDATE PROFILE LINKS =====
-    const profileId = 1; // Set this to your actual profile ID if different
+    // const profileId = 1; 
 
-    if (profileId) {
-      // Update profile links with your new URLs
-      await pool.query(`
-        UPDATE profile_links
-        SET github = $1, linkedin = $2, portfolio = $3
-        WHERE profile_id = $4
-      `, ['https://github.com/Pankaj52141', 'https://linkedin.com/in/pankaj-jaiswal101', 'https://pankajjaiswal.vercel.app', profileId]);
+    // if (profileId) {
+    //   // Update profile links with your new URLs
+    //   await pool.query(`
+    //     UPDATE profile_links
+    //     SET github = $1, linkedin = $2, portfolio = $3
+    //     WHERE profile_id = $4
+    //   `, ['https://github.com/Pankaj52141', 'https://linkedin.com/in/pankaj-jaiswal101', 'https://pankajjaiswal.vercel.app', profileId]);
 
-      console.log('Profile links updated successfully!');
-    }
+    //   console.log('Profile links updated successfully!');
+    //}
   } catch (error) {
     console.error('Error inserting sample data:', error);
   } finally {

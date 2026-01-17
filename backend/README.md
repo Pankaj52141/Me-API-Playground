@@ -634,12 +634,6 @@ curl -H "Authorization: Bearer YOUR_TOKEN" \
   http://localhost:3000/profile-links
 ```
 
-### Using Postman
-
-1. Import endpoints
-2. Set `{{token}}` environment variable after login
-3. Use `Authorization: Bearer {{token}}` in headers
-
 ## 🚀 Production Deployment
 
 Before deploying:
