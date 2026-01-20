@@ -5,8 +5,9 @@ import { authMiddleware } from "../middleware/auth";
 const router = Router();
 
 // READ profile
-router.get("/", async (_req: Request, res: Response) => {
-  const result = await db.query("SELECT * FROM profile LIMIT 1");
+router.get("/", authMiddleware, async (req: any, res: Response) => {
+  const userId = req.userId;
+  const result = await db.query("SELECT * FROM profile WHERE user_id = $1", [userId]);
   res.json(result.rows[0]);
 });
 
@@ -23,15 +24,16 @@ router.post("/", async (req: Request, res: Response) => {
 });
 
 // UPDATE profile
-router.put("/", authMiddleware, async (req: Request, res: Response) => {
+router.put("/", authMiddleware, async (req: any, res: Response) => {
   const { name, email, education } = req.body;
+  const userId = req.userId;
 
-  await db.query(
-    "UPDATE profile SET name=$1, email=$2, education=$3",
-    [name, email, education]
+  const result = await db.query(
+    "UPDATE profile SET name=$1, email=$2, education=$3 WHERE user_id=$4 RETURNING *",
+    [name, email, education, userId]
   );
 
-  res.json({ message: "Profile updated" });
+  res.json(result.rows[0]);
 });
 
 export default router;

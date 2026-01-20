@@ -1,13 +1,19 @@
 import { Router, Request, Response } from "express";
 import db from "../db";
+import { authMiddleware } from "../middleware/auth";
 
 const router = Router();
 
-// GET all work experiences
-router.get("/", async (_req: Request, res: Response) => {
+// GET all work experiences for logged-in user
+router.get("/", authMiddleware, async (req: any, res: Response) => {
   try {
+    const userId = req.userId;
     const result = await db.query(
-      "SELECT * FROM work_experience ORDER BY start_date DESC"
+      `SELECT we.* FROM work_experience we
+       JOIN profile p ON we.profile_id = p.id
+       WHERE p.user_id = $1
+       ORDER BY we.start_date DESC`,
+      [userId]
     );
     res.json(result.rows);
   } catch (error) {
@@ -15,13 +21,16 @@ router.get("/", async (_req: Request, res: Response) => {
   }
 });
 
-// GET single work experience by ID
-router.get("/:id", async (req: Request, res: Response) => {
+// GET single work experience by ID - verify ownership
+router.get("/:id", authMiddleware, async (req: any, res: Response) => {
   const { id } = req.params;
+  const userId = req.userId;
   try {
     const result = await db.query(
-      "SELECT * FROM work_experience WHERE id = $1",
-      [id]
+      `SELECT we.* FROM work_experience we
+       JOIN profile p ON we.profile_id = p.id
+       WHERE we.id = $1 AND p.user_id = $2`,
+      [id, userId]
     );
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Work experience not found" });
@@ -30,31 +39,32 @@ router.get("/:id", async (req: Request, res: Response) => {
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch work experience" });
   }
-});
-
-// POST create new work experience
-router.post("/", async (req: Request, res: Response) => {
-  const { profile_id, company, role, start_date, end_date, description } = req.body;
+});uthMiddleware, async (req: any, res: Response) => {
+  const userId = req.userId;
+  const { company, role, start_date, end_date, description } = req.body;
   try {
     // Validate required fields
-    if (!profile_id || !company || !role || !start_date) {
-      return res.status(400).json({ error: "profile_id, company, role, and start_date are required" });
+    if (!company || !role || !start_date) {
+      return res.status(400).json({ error: "company, role, and start_date are required" });
     }
     
-    const result = await db.query(
-      "INSERT INTO work_experience (profile_id, company, role, start_date, end_date, description) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-      [profile_id, company, role, start_date, end_date || null, description || null]
+    // Get user's profile
+    const profileResult = await db.query(
+      "SELECT id FROM profile WHERE user_id = $1",
+      [userId]
     );
-    res.status(201).json(result.rows[0]);
-  } catch (error) {
-    console.error("Error creating work experience:", error);
-    res.status(500).json({ error: "Failed to create work experience", details: error instanceof Error ? error.message : String(error) });
-  }
-});
-
-// PUT update work experience
-router.put("/:id", async (req: Request, res: Response) => {
+    
+    if (profileResult.rows.length === 0) {
+      return res.status(404).json({ error: "User profile not found" });
+    }
+    
+    const profileId = profileResult.rows[0].id;
+    
+    const result = await db.query(
+      "INSERT INTO work_exper - verify ownership
+router.put("/:id", authMiddleware, async (req: any, res: Response) => {
   const { id } = req.params;
+  const userId = req.userId;
   const { company, role, start_date, end_date, description } = req.body;
   try {
     // Validate required fields
@@ -62,8 +72,40 @@ router.put("/:id", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Company, role, and start_date are required" });
     }
     
+    // Check ownership
+    const ownershipCheck = await db.query(
+      `SELECT we.id FROM work_experience we
+       JOIN profile p ON we.profile_id = p.id
+       WHERE we.id = $1 AND p.user_id = $2`,
+      [id, userId]
+    );
+    
+    if (ownershipCheck.rows.length === 0) {
+      return res.status(404).json({ error: "Work experience not found or unauthorized" });
+    }
+    
     const result = await db.query(
-      "UPDATE work_experience SET company = $1, role = $2, start_date = $3, end_date = $4, description = $5 WHERE id = $6 RETURNING *",
+      "UPDATE work_experi - verify ownership
+router.delete("/:id", authMiddleware, async (req: any, res: Response) => {
+  const { id } = req.params;
+  const userId = req.userId;
+  try {
+    // Check ownership
+    const ownershipCheck = await db.query(
+      `SELECT we.id FROM work_experience we
+       JOIN profile p ON we.profile_id = p.id
+       WHERE we.id = $1 AND p.user_id = $2`,
+      [id, userId]
+    );
+    
+    if (ownershipCheck.rows.length === 0) {
+      return res.status(404).json({ error: "Work experience not found or unauthorized" });
+    }
+    
+    const result = await db.query(
+      "DELETE FROM work_experience WHERE id = $1 RETURNING *",
+      [id]
+    ); "UPDATE work_experience SET company = $1, role = $2, start_date = $3, end_date = $4, description = $5 WHERE id = $6 RETURNING *",
       [company, role, start_date, end_date || null, description || null, id]
     );
     if (result.rows.length === 0) {

@@ -7,11 +7,16 @@ export const useApi = <T,>() => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = useCallback(async (url: string) => {
+  const fetchData = useCallback(async (url: string, token?: string) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_URL}${url}`);
+      const headers: any = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`${API_URL}${url}`, { headers });
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const result = await response.json();
       setData(result);

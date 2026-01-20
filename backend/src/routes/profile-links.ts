@@ -1,37 +1,61 @@
 import { Router, Request, Response } from "express";
 import db from "../db";
+import { authMiddleware } from "../middleware/auth";
 
 const router = Router();
 
-// GET profile links
-router.get("/", async (_req: Request, res: Response) => {
+// GET profile links for logged-in user
+router.get("/", authMiddleware, async (req: any, res: Response) => {
   try {
-    const result = await db.query("SELECT github, linkedin, portfolio FROM profile_links LIMIT 1");
+    const userId = req.userId;
+    const result = await db.query(
+      `SELECT pl.* FROM profile_links pl
+       JOIN profile p ON pl.profile_id = p.id
+       WHERE p.user_id = $1`,
+      [userId]
+    );
     res.json(result.rows);
   } catch (error) {
     res.json([{ github: "", linkedin: "", portfolio: "" }]);
   }
 });
 
-// POST/UPDATE profile links
-router.post("/", async (req: Request, res: Response) => {
+// POST/UPDATE profile links for logged-in user
+router.post("/", authMiddleware, async (req: any, res: Response) => {
   const { github, linkedin, portfolio } = req.body;
+  const userId = req.userId;
+  
   try {
-    // Check if links exist
-    const existing = await db.query("SELECT id FROM profile_links LIMIT 1");
+    // Get user's profile
+    const profileResult = await db.query(
+      "SELECT id FROM profile WHERE user_id = $1",
+      [userId]
+    );
+    
+    if (profileResult.rows.length === 0) {
+      return res.status(404).json({ error: "User profile not found" });
+    }
+    
+    const profileId = profileResult.rows[0].id;
+    
+    // Check if links exist for this profile
+    const existing = await db.query(
+      "SELECT id FROM profile_links WHERE profile_id = $1",
+      [profileId]
+    );
     
     if (existing.rows.length > 0) {
       // Update
       const result = await db.query(
-        "UPDATE profile_links SET github=$1, linkedin=$2, portfolio=$3 WHERE id=$4 RETURNING *",
-        [github, linkedin, portfolio, existing.rows[0].id]
+        "UPDATE profile_links SET github=$1, linkedin=$2, portfolio=$3 WHERE profile_id=$4 RETURNING *",
+        [github, linkedin, portfolio, profileId]
       );
       res.json(result.rows[0]);
     } else {
       // Insert
       const result = await db.query(
-        "INSERT INTO profile_links (github, linkedin, portfolio) VALUES ($1, $2, $3) RETURNING *",
-        [github, linkedin, portfolio]
+        "INSERT INTO profile_links (profile_id, github, linkedin, portfolio) VALUES ($1, $2, $3, $4) RETURNING *",
+        [profileId, github, linkedin, portfolio]
       );
       res.status(201).json(result.rows[0]);
     }

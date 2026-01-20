@@ -89,23 +89,23 @@ function App() {
   const totalPages = Math.ceil(allProjects.length / projectsPerPage);
   const totalSkillsPages = Math.ceil(skills.length / skillsPerPage);
 
-  // Fetch data on mount
+  // Fetch data on mount and when token changes
   useEffect(() => {
-    profileApi.fetchData('/profile').then((data) => data && setProfile(data));
-    profileApi.fetchData('/profile-links').then((data) => {
-      if (data && data.length > 0) {
-        setProfileLinks(data[0]);
-      }
-    });
-  }, []);
-
-  useEffect(() => {
-    skillsApi.fetchData('/skills').then((data) => data && setSkills(data));
-  }, []);
-
-  useEffect(() => {
-    workExpApi.fetchData('/work-experience').then((data) => data && setWorkExperience(data));
-  }, []);
+    if (token && isLoggedIn) {
+      // User is logged in - fetch their data with auth
+      profileApi.fetchData('/profile', token).then((data) => data && setProfile(data));
+      profileApi.fetchData('/profile-links', token).then((data) => {
+        if (data && data.length > 0) {
+          setProfileLinks(data[0]);
+        }
+      });
+      workExpApi.fetchData('/work-experience', token).then((data) => data && setWorkExperience(data));
+    } else {
+      // No token - clear profile data
+      setProfile(null);
+      setWorkExperience([]);
+    }
+  }, [token, isLoggedIn]);
 
   useEffect(() => {
     projectsApi.fetchData('/projects').then((data) => {
@@ -153,7 +153,7 @@ function App() {
 
   // Profile management
   const refreshProfile = () => {
-    profileApi.fetchData('/profile').then((data) => data && setProfile(data));
+    profileApi.fetchData('/profile', token || undefined).then((data) => data && setProfile(data));
   };
 
   const openEditProfile = () => {
