@@ -36,8 +36,8 @@ router.post("/login", async (req: Request, res: Response) => {
 
   const token = jwt.sign({ userId: user.id }, JWT_SECRET);
   
-  // Fetch user profile
-  const profileResult = await db.query("SELECT * FROM profile LIMIT 1");
+  // Fetch user's profile
+  const profileResult = await db.query("SELECT * FROM profile WHERE user_id = $1", [user.id]);
   const profile = profileResult.rows[0] || null;
 
   res.json({ token, user: { id: user.id, username: user.username }, profile });
@@ -57,10 +57,10 @@ router.post("/signup", async (req: Request, res: Response) => {
     );
     const newUser = userResult.rows[0];
 
-    // Insert profile
+    // Insert profile linked to user
     const profileResult = await db.query(
-      "INSERT INTO profile (name, email, education) VALUES ($1, $2, $3) RETURNING *",
-      [name, email, education || null]
+      "INSERT INTO profile (user_id, name, email, education) VALUES ($1, $2, $3, $4) RETURNING *",
+      [newUser.id, name, email, education || null]
     );
     const newProfile = profileResult.rows[0];
 

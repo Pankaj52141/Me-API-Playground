@@ -379,15 +379,16 @@ function App() {
 
   // Auth
   const handleLogin = async () => {
-    const success = await login(loginUsername, loginPassword);
-    if (success) {
+    const result = await login(loginUsername, loginPassword);
+    if (result) {
       setShowLogin(false);
       setLoginUsername('');
       setLoginPassword('');
-      // Refresh profile if available
-      if (success.profile) {
-        setProfile(success.profile);
+      // Display user's profile from login response
+      if (result.profile) {
+        setProfile(result.profile);
       }
+      setError(null);
     } else {
       setError('Login failed');
     }
@@ -401,7 +402,7 @@ function App() {
     const result = await signup(signupUsername, signupPassword, signupName, signupEmail, signupEducation);
     if (result) {
       setShowSignup(false);
-      // Set the user profile from signup response
+      // Display user's profile from signup response
       if (result.profile) {
         setProfile(result.profile);
       }

@@ -8,6 +8,7 @@ CREATE TABLE users (
 --Profile Table
 CREATE TABLE profile (
   id SERIAL PRIMARY KEY,
+  user_id INT UNIQUE REFERENCES users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   email TEXT NOT NULL,
   education TEXT
