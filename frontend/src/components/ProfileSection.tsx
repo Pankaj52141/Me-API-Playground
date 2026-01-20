@@ -18,6 +18,7 @@ interface ProfileSectionProps {
   onExperienceClick: () => void;
   onLogout: () => void;
   onLogin: () => void;
+  onSignup: () => void;
   onRefresh: () => void;
 }
 
@@ -32,6 +33,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
   onExperienceClick,
   onLogout,
   onLogin,
+  onSignup,
   onRefresh,
 }) => {
   return (
@@ -61,9 +63,14 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
               </button>
             </>
           ) : (
-            <button className="btn btn-login" onClick={onLogin} title="Login">
-              🔐 Login
-            </button>
+            <>
+              <button className="btn btn-login" onClick={onLogin} title="Login">
+                🔐 Login
+              </button>
+              <button className="btn btn-login" onClick={onSignup} title="Sign up">
+                ✍️ Sign Up
+              </button>
+            </>
           )}
           <button
             className="btn btn-refresh"

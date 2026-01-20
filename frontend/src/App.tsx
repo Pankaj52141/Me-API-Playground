@@ -10,6 +10,7 @@ import { WorkExperienceSection } from './components/WorkExperienceSection';
 import { ErrorDisplay } from './components/ErrorDisplay';
 import { Footer } from './components/Footer';
 import { LoginModal } from './components/modals/LoginModal';
+import { SignupModal } from './components/modals/SignupModal';
 import { EditProfileModal } from './components/modals/EditProfileModal';
 import { ManageSkillsModal } from './components/modals/ManageSkillsModal';
 import { ManageProjectsModal } from './components/modals/ManageProjectsModal';
@@ -26,7 +27,7 @@ function App() {
   const workExpApi = useApi<WorkExperience[]>();
 
   // Auth hook
-  const { token, isLoggedIn, login, logout, loading: authLoading } = useAuth();
+  const { token, isLoggedIn, login, signup, logout, userProfile, loading: authLoading } = useAuth();
 
   // State
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -43,6 +44,7 @@ function App() {
 
   // UI state
   const [showLogin, setShowLogin] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showManageSkills, setShowManageSkills] = useState(false);
   const [showManageProjects, setShowManageProjects] = useState(false);
@@ -52,6 +54,11 @@ function App() {
   // Form state
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [signupUsername, setSignupUsername] = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
+  const [signupName, setSignupName] = useState('');
+  const [signupEmail, setSignupEmail] = useState('');
+  const [signupEducation, setSignupEducation] = useState('');
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editEducation, setEditEducation] = useState('');
@@ -377,8 +384,36 @@ function App() {
       setShowLogin(false);
       setLoginUsername('');
       setLoginPassword('');
+      // Refresh profile if available
+      if (success.profile) {
+        setProfile(success.profile);
+      }
     } else {
       setError('Login failed');
+    }
+  };
+
+  const handleSignup = async () => {
+    if (!signupUsername || !signupPassword || !signupName || !signupEmail) {
+      setError('Please fill in all required fields');
+      return;
+    }
+    const result = await signup(signupUsername, signupPassword, signupName, signupEmail, signupEducation);
+    if (result) {
+      setShowSignup(false);
+      // Set the user profile from signup response
+      if (result.profile) {
+        setProfile(result.profile);
+      }
+      // Clear form
+      setSignupUsername('');
+      setSignupPassword('');
+      setSignupName('');
+      setSignupEmail('');
+      setSignupEducation('');
+      setError(null);
+    } else {
+      setError('Signup failed. Please try again.');
     }
   };
 
@@ -400,6 +435,7 @@ function App() {
           onExperienceClick={() => setShowManageWorkExperience(true)}
           onLogout={logout}
           onLogin={() => setShowLogin(true)}
+          onSignup={() => setShowSignup(true)}
           onRefresh={refreshProfile}
         />
         <SkillsSidebar
@@ -452,6 +488,31 @@ function App() {
         onPasswordChange={setLoginPassword}
         onLogin={handleLogin}
         loading={authLoading}
+        onSwitchToSignup={() => {
+          setShowLogin(false);
+          setShowSignup(true);
+        }}
+      />
+
+      <SignupModal
+        isOpen={showSignup}
+        onClose={() => setShowSignup(false)}
+        username={signupUsername}
+        password={signupPassword}
+        name={signupName}
+        email={signupEmail}
+        education={signupEducation}
+        onUsernameChange={setSignupUsername}
+        onPasswordChange={setSignupPassword}
+        onNameChange={setSignupName}
+        onEmailChange={setSignupEmail}
+        onEducationChange={setSignupEducation}
+        onSignup={handleSignup}
+        loading={authLoading}
+        onSwitchToLogin={() => {
+          setShowSignup(false);
+          setShowLogin(true);
+        }}
       />
 
       <EditProfileModal

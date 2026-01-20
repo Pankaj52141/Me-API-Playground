@@ -1,32 +1,56 @@
 import React from 'react';
 import { Modal } from '../Modal';
 
-interface LoginModalProps {
+interface SignupModalProps {
   isOpen: boolean;
   onClose: () => void;
   username: string;
   password: string;
+  name: string;
+  email: string;
+  education: string;
   onUsernameChange: (username: string) => void;
   onPasswordChange: (password: string) => void;
-  onLogin: () => void;
+  onNameChange: (name: string) => void;
+  onEmailChange: (email: string) => void;
+  onEducationChange: (education: string) => void;
+  onSignup: () => void;
   loading: boolean;
-  onSwitchToSignup: () => void;
+  onSwitchToLogin: () => void;
 }
 
-export const LoginModal: React.FC<LoginModalProps> = ({
+export const SignupModal: React.FC<SignupModalProps> = ({
   isOpen,
   onClose,
   username,
   password,
+  name,
+  email,
+  education,
   onUsernameChange,
   onPasswordChange,
-  onLogin,
+  onNameChange,
+  onEmailChange,
+  onEducationChange,
+  onSignup,
   loading,
-  onSwitchToSignup,
+  onSwitchToLogin,
 }) => {
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Login">
+    <Modal isOpen={isOpen} onClose={onClose} title="Sign Up">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <input
+          type="text"
+          placeholder="Full Name"
+          value={name}
+          onChange={(e) => onNameChange(e.target.value)}
+        />
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => onEmailChange(e.target.value)}
+        />
         <input
           type="text"
           placeholder="Username"
@@ -39,9 +63,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           value={password}
           onChange={(e) => onPasswordChange(e.target.value)}
         />
+        <input
+          type="text"
+          placeholder="Education (optional)"
+          value={education}
+          onChange={(e) => onEducationChange(e.target.value)}
+        />
         <div className="modal-actions">
-          <button className="button" onClick={onLogin} disabled={loading}>
-            {loading ? <div className="loading"></div> : 'Login'}
+          <button className="button" onClick={onSignup} disabled={loading}>
+            {loading ? <div className="loading"></div> : 'Sign Up'}
           </button>
           <button className="button secondary" onClick={onClose}>
             Cancel
@@ -49,9 +79,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         </div>
         <div style={{ textAlign: 'center', marginTop: '10px' }}>
           <p>
-            Don't have an account?{' '}
+            Already have an account?{' '}
             <button
-              onClick={onSwitchToSignup}
+              onClick={onSwitchToLogin}
               style={{
                 background: 'none',
                 border: 'none',
@@ -60,7 +90,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 textDecoration: 'underline',
               }}
             >
-              Sign up here
+              Login here
             </button>
           </p>
         </div>
@@ -68,4 +98,3 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     </Modal>
   );
 };
-
