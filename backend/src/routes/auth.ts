@@ -25,22 +25,34 @@ router.post("/register", async (req: Request, res: Response) => {
 
 // Login
 router.post("/login", async (req: Request, res: Response) => {
-  const { username, password } = req.body;
+  try {
+    const { username, password } = req.body;
 
-  const result = await db.query("SELECT * FROM users WHERE username = $1", [username]);
-  const user = result.rows[0];
+    const result = await db.query("SELECT * FROM users WHERE username = $1", [username]);
+    const user = result.rows[0];
 
-  if (!user || !(await bcrypt.compare(password, user.password_hash))) {
-    return res.status(401).json({ error: "Invalid credentials" });
+    if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    const token = jwt.sign({ userId: user.id }, JWT_SECRET);
+    
+    // Try to fetch user's profile by user_id if column exists, otherwise get latest profile
+    let profile = null;
+    try {
+      const profileResult = await db.query("SELECT * FROM profile WHERE user_id = $1", [user.id]);
+      profile = profileResult.rows[0] || null;
+    } catch (e) {
+      // If user_id column doesn't exist, get the first profile (fallback)
+      const profileResult = await db.query("SELECT * FROM profile LIMIT 1");
+      profile = profileResult.rows[0] || null;
+    }
+
+    res.json({ token, user: { id: user.id, username: user.username }, profile });
+  } catch (error: any) {
+    console.error("Login error:", error.message);
+    res.status(500).json({ error: error.message || "Login failed" });
   }
-
-  const token = jwt.sign({ userId: user.id }, JWT_SECRET);
-  
-  // Fetch user's profile
-  const profileResult = await db.query("SELECT * FROM profile WHERE user_id = $1", [user.id]);
-  const profile = profileResult.rows[0] || null;
-
-  res.json({ token, user: { id: user.id, username: user.username }, profile });
 });
 
 // Signup
@@ -57,23 +69,46 @@ router.post("/signup", async (req: Request, res: Response) => {
     );
     const newUser = userResult.rows[0];
 
-    // Insert profile linked to user
-    const profileResult = await db.query(
-      "INSERT INTO profile (user_id, name, email, education) VALUES ($1, $2, $3, $4) RETURNING *",
-      [newUser.id, name, email, education || null]
-    );
-    const newProfile = profileResult.rows[0];
+    try {
+      // Try to insert profile with user_id if column exists
+      const profileResult = await db.query(
+        "INSERT INTO profile (user_id, name, email, education) VALUES ($1, $2, $3, $4) RETURNING *",
+        [newUser.id, name, email, education || null]
+      );
+      const newProfile = profileResult.rows[0];
 
-    // Generate token
-    const token = jwt.sign({ userId: newUser.id }, JWT_SECRET);
+      // Generate token
+      const token = jwt.sign({ userId: newUser.id }, JWT_SECRET);
 
-    res.status(201).json({
-      token,
-      user: { id: newUser.id, username: newUser.username },
-      profile: newProfile,
-    });
-  } catch (error) {
-    res.status(400).json({ error: "Failed to create user" });
+      res.status(201).json({
+        token,
+        user: { id: newUser.id, username: newUser.username },
+        profile: newProfile,
+      });
+    } catch (profileError: any) {
+      // If user_id column doesn't exist, insert without it
+      if (profileError.message.includes('column "user_id"')) {
+        const profileResult = await db.query(
+          "INSERT INTO profile (name, email, education) VALUES ($1, $2, $3) RETURNING *",
+          [name, email, education || null]
+        );
+        const newProfile = profileResult.rows[0];
+
+        // Generate token
+        const token = jwt.sign({ userId: newUser.id }, JWT_SECRET);
+
+        res.status(201).json({
+          token,
+          user: { id: newUser.id, username: newUser.username },
+          profile: newProfile,
+        });
+      } else {
+        throw profileError;
+      }
+    }
+  } catch (error: any) {
+    console.error("Signup error:", error.message);
+    res.status(400).json({ error: error.message || "Failed to create user" });
   }
 });
 
