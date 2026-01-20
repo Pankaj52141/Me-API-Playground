@@ -27,7 +27,7 @@ function App() {
   const workExpApi = useApi<WorkExperience[]>();
 
   // Auth hook
-  const { token, isLoggedIn, login, signup, logout, userProfile, loading: authLoading } = useAuth();
+  const { token, isLoggedIn, login, signup, logout, loading: authLoading } = useAuth();
 
   // State
   const [profile, setProfile] = useState<Profile | null>(null);
