@@ -23,13 +23,13 @@ const seedData = async () => {
     const userId = userResult.rows[0].id;
     console.log(`✓ User inserted with id: ${userId}`);
 
-    // Insert default profile - use the actual column name based on schema
+    // Insert default profile with proper user_id reference
     const profileResult = await pool.query(
-      "INSERT INTO profile (id, name, email, education) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET name = $2, email = $3, education = $4 RETURNING id",
-      [1, 'Pankaj Jaiswal', '231210083@nitdelhi.ac.in', 'Bachelor of Computer Science']
+      "INSERT INTO profile (user_id, name, email, education) VALUES ($1, $2, $3, $4) ON CONFLICT (user_id) DO UPDATE SET name = $2, email = $3, education = $4 RETURNING id",
+      [userId, 'Pankaj Jaiswal', '231210083@nitdelhi.ac.in', 'Bachelor of Computer Science']
     );
     const profileId = profileResult.rows[0].id;
-    console.log(`✓ Profile inserted with id: ${profileId}`);
+    console.log(`✓ Profile inserted with id: ${profileId} for user_id: ${userId}`);
 
     // Insert profile links
     await pool.query(

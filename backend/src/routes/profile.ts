@@ -19,11 +19,17 @@ router.get("/", authMiddleware, async (req: any, res: Response) => {
   }
 });
 
-// READ public profile (first user's profile - ID 1)
+// READ public profile (default user's profile)
 router.get("/public/default", async (_req: Request, res: Response) => {
   try {
-    const result = await db.query("SELECT * FROM profile WHERE user_id = $1", [1]);
-    res.json(result.rows[0] || null);
+    const result = await db.query(
+      "SELECT p.* FROM profile p JOIN users u ON p.user_id = u.id WHERE u.username = $1",
+      ['default_user']
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Default profile not found" });
+    }
+    res.json(result.rows[0]);
   } catch (error: any) {
     console.error("Error fetching public profile:", error.message);
     res.status(500).json({ error: "Failed to fetch profile", details: error.message });

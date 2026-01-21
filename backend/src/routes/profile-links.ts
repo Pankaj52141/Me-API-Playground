@@ -21,14 +21,15 @@ router.get("/", authMiddleware, async (req: any, res: Response) => {
   }
 });
 
-// GET public profile links for default user (ID 1)
+// GET public profile links for default user
 router.get("/public/default", async (_req: Request, res: Response) => {
   try {
     const result = await db.query(
       `SELECT pl.* FROM profile_links pl
        JOIN profile p ON pl.profile_id = p.id
-       WHERE p.user_id = $1`,
-      [1]
+       JOIN users u ON p.user_id = u.id
+       WHERE u.username = $1`,
+      ['default_user']
     );
     res.json(result.rows);
   } catch (error: any) {
