@@ -122,7 +122,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
             <p>No profile data available. Please check your backend connection.</p>
           )}
           <p style={{ fontSize: '0.9em', marginTop: '10px', color: '#7f8c8d' }}>
-            Make sure the backend server is running on http://localhost:3000
+            Make sure the backend API server is running and VITE_API_URL is configured correctly
           </p>
         </div>
       )}
