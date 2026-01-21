@@ -14,15 +14,7 @@ import projectLinksRoutes from "./routes/project-links";
 
 const app = express();
 
-// Rate limiters
-const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // Limit each IP to 1000 requests per 15 minutes
-  message: "Too many requests from this IP, please try again later.",
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
+// Rate limiters - only for auth (strict) and write operations
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10, // Limit for auth attempts
@@ -30,15 +22,8 @@ const authLimiter = rateLimit({
   skipSuccessfulRequests: true, // Don't count successful attempts
 });
 
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 500, // Increased limit for data modifications
-  message: "Too many requests, please try again later.",
-});
-
 app.use(cors());
 app.use(express.json());
-app.use(globalLimiter); // Apply global limiter to all routes
 
 app.get("/", (req: Request, res: Response) => {
   res.status(200).json({ 
@@ -63,13 +48,13 @@ app.get("/health", (req: Request, res: Response) => {
 });
 
 app.use("/auth", authLimiter, authRoutes);
-app.use("/profile", profileRoutes); // No rate limiter - includes public endpoints
-app.use("/profile-links", profileLinksRoutes); // No rate limiter - includes public endpoints
-app.use("/projects", apiLimiter, projectRoutes);
-app.use("/project-links", apiLimiter, projectLinksRoutes);
-app.use("/skills", apiLimiter, skillRoutes);
-app.use("/search", searchRoutes); // Search can have more requests
-app.use("/project-skills", apiLimiter, projectSkillsRoutes);
-app.use("/work-experience", apiLimiter, workExperienceRoutes);
+app.use("/profile", profileRoutes);
+app.use("/profile-links", profileLinksRoutes);
+app.use("/projects", projectRoutes);
+app.use("/project-links", projectLinksRoutes);
+app.use("/skills", skillRoutes);
+app.use("/search", searchRoutes);
+app.use("/project-skills", projectSkillsRoutes);
+app.use("/work-experience", workExperienceRoutes);
 
 export default app;
