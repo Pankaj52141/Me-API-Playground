@@ -15,8 +15,9 @@ router.get("/", authMiddleware, async (req: any, res: Response) => {
       [userId]
     );
     res.json(result.rows);
-  } catch (error) {
-    res.json([{ github: "", linkedin: "", portfolio: "" }]);
+  } catch (error: any) {
+    console.error('Error fetching profile links:', error.message);
+    res.status(500).json({ error: "Failed to fetch profile links", details: error.message });
   }
 });
 
@@ -30,8 +31,9 @@ router.get("/public/default", async (_req: Request, res: Response) => {
       [1]
     );
     res.json(result.rows);
-  } catch (error) {
-    res.json([]);
+  } catch (error: any) {
+    console.error('Error fetching public profile links:', error.message);
+    res.status(500).json({ error: "Failed to fetch profile links", details: error.message });
   }
 });
 

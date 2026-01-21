@@ -16,8 +16,9 @@ router.get("/", authMiddleware, async (req: any, res: Response) => {
       [userId]
     );
     res.json(result.rows);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch work experience" });
+  } catch (error: any) {
+    console.error('Error fetching work experience:', error.message);
+    res.status(500).json({ error: "Failed to fetch work experience", details: error.message });
   }
 });
 
@@ -36,8 +37,9 @@ router.get("/:id", authMiddleware, async (req: any, res: Response) => {
       return res.status(404).json({ error: "Work experience not found" });
     }
     res.json(result.rows[0]);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch work experience" });
+  } catch (error: any) {
+    console.error('Error fetching work experience:', error.message);
+    res.status(500).json({ error: "Failed to fetch work experience", details: error.message });
   }
 });
 

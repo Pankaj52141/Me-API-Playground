@@ -8,17 +8,26 @@ export interface AuthRequest extends Request {
 }
 
 export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
-  const token = req.headers.authorization?.split(" ")[1];
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.split(" ")[1];
 
   if (!token) {
-    return res.status(401).json({ error: "No token provided" });
+    console.warn('No token provided in request');
+    return res.status(401).json({ error: "No token provided. Please login first." });
   }
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
+    if (!decoded.userId) {
+      return res.status(401).json({ error: "Invalid token structure" });
+    }
     req.userId = decoded.userId;
     next();
-  } catch (error) {
-    res.status(401).json({ error: "Invalid token" });
+  } catch (error: any) {
+    console.error('Token verification failed:', error.message);
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: "Token expired. Please login again." });
+    }
+    return res.status(401).json({ error: "Invalid or malformed token" });
   }
 };

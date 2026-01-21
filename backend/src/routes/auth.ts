@@ -28,11 +28,20 @@ router.post("/login", async (req: Request, res: Response) => {
   try {
     const { username, password } = req.body;
 
+    if (!username || !password) {
+      return res.status(400).json({ error: "Username and password are required" });
+    }
+
     const result = await db.query("SELECT * FROM users WHERE username = $1", [username]);
     const user = result.rows[0];
 
-    if (!user || !(await bcrypt.compare(password, user.password_hash))) {
-      return res.status(401).json({ error: "Invalid credentials" });
+    if (!user) {
+      return res.status(401).json({ error: "User not found" });
+    }
+
+    const passwordValid = await bcrypt.compare(password, user.password_hash);
+    if (!passwordValid) {
+      return res.status(401).json({ error: "Invalid password" });
     }
 
     const token = jwt.sign({ userId: user.id }, JWT_SECRET);
@@ -58,6 +67,14 @@ router.post("/login", async (req: Request, res: Response) => {
 // Signup
 router.post("/signup", async (req: Request, res: Response) => {
   const { username, password, name, email, education } = req.body;
+
+  if (!username || !password || !name || !email) {
+    return res.status(400).json({ error: "Username, password, name, and email are required" });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({ error: "Password must be at least 6 characters" });
+  }
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);

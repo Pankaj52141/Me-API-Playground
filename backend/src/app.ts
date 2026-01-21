@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, ErrorRequestHandler } from "express";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 
@@ -56,5 +56,24 @@ app.use("/skills", skillRoutes);
 app.use("/search", searchRoutes);
 app.use("/project-skills", projectSkillsRoutes);
 app.use("/work-experience", workExperienceRoutes);
+
+// 404 handler
+app.use((_req: Request, res: Response) => {
+  res.status(404).json({ 
+    error: "Endpoint not found",
+    message: "The requested endpoint does not exist",
+    hint: "Check the / endpoint for available endpoints"
+  });
+});
+
+// Global error handler
+app.use((err: any, _req: Request, res: Response, _next: any) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({
+    error: "Internal server error",
+    message: err.message || "An unexpected error occurred",
+    details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
+});
 
 export default app;

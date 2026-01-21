@@ -5,19 +5,29 @@ const router = express.Router();
 
 // GET all project links
 router.get("/", async (req: Request, res: Response) => {
-  const result = await db.query("SELECT * FROM project_links");
-  res.json(result.rows);
+  try {
+    const result = await db.query("SELECT * FROM project_links");
+    res.json(result.rows);
+  } catch (error: any) {
+    console.error('Error fetching project links:', error.message);
+    res.status(500).json({ error: "Failed to fetch project links", details: error.message });
+  }
 });
 
 // GET project link by project ID
 router.get("/:projectId", async (req: Request, res: Response) => {
-  const { projectId } = req.params;
-  const result = await db.query(
-    "SELECT * FROM project_links WHERE project_id = $1",
-    [projectId]
-  );
-  
-  res.json(result.rows[0] || null);
+  try {
+    const { projectId } = req.params;
+    const result = await db.query(
+      "SELECT * FROM project_links WHERE project_id = $1",
+      [projectId]
+    );
+    
+    res.json(result.rows[0] || null);
+  } catch (error: any) {
+    console.error('Error fetching project link:', error.message);
+    res.status(500).json({ error: "Failed to fetch project link", details: error.message });
+  }
 });
 
 // POST create new project link
@@ -28,12 +38,17 @@ router.post("/", async (req: Request, res: Response) => {
     return res.status(400).json({ error: "project_id and url are required" });
   }
 
-  const result = await db.query(
-    "INSERT INTO project_links (project_id, url) VALUES ($1, $2) RETURNING *",
-    [project_id, url]
-  );
+  try {
+    const result = await db.query(
+      "INSERT INTO project_links (project_id, url) VALUES ($1, $2) RETURNING *",
+      [project_id, url]
+    );
 
-  res.status(201).json(result.rows[0]);
+    res.status(201).json(result.rows[0]);
+  } catch (error: any) {
+    console.error('Error creating project link:', error.message);
+    res.status(500).json({ error: "Failed to create project link", details: error.message });
+  }
 });
 
 // PUT update project link
