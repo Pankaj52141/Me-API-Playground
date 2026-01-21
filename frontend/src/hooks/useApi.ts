@@ -4,12 +4,8 @@ import { useState, useCallback } from 'react';
 const getApiUrl = (): string => {
   const envUrl = import.meta.env.VITE_API_URL;
   if (envUrl) return envUrl;
-  // Fallback for development
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    return 'http://localhost:3000';
-  }
-  // Fallback to current origin
-  return window.location.origin;
+  // Fallback to Render backend
+  return 'https://me-api-playground-4gje.onrender.com';
 };
 
 const API_URL = getApiUrl();
