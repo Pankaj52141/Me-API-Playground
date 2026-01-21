@@ -63,8 +63,8 @@ app.get("/health", (req: Request, res: Response) => {
 });
 
 app.use("/auth", authLimiter, authRoutes);
-app.use("/profile", apiLimiter, profileRoutes);
-app.use("/profile-links", apiLimiter, profileLinksRoutes);
+app.use("/profile", profileRoutes); // No rate limiter - includes public endpoints
+app.use("/profile-links", profileLinksRoutes); // No rate limiter - includes public endpoints
 app.use("/projects", apiLimiter, projectRoutes);
 app.use("/project-links", apiLimiter, projectLinksRoutes);
 app.use("/skills", apiLimiter, skillRoutes);
