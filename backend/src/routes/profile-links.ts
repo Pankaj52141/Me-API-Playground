@@ -20,6 +20,21 @@ router.get("/", authMiddleware, async (req: any, res: Response) => {
   }
 });
 
+// GET public profile links for default user (ID 1)
+router.get("/public/default", async (_req: Request, res: Response) => {
+  try {
+    const result = await db.query(
+      `SELECT pl.* FROM profile_links pl
+       JOIN profile p ON pl.profile_id = p.id
+       WHERE p.user_id = $1`,
+      [1]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    res.json([]);
+  }
+});
+
 // POST/UPDATE profile links for logged-in user
 router.post("/", authMiddleware, async (req: any, res: Response) => {
   const { github, linkedin, portfolio } = req.body;

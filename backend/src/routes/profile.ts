@@ -11,6 +11,12 @@ router.get("/", authMiddleware, async (req: any, res: Response) => {
   res.json(result.rows[0]);
 });
 
+// READ public profile (first user's profile - ID 1)
+router.get("/public/default", async (_req: Request, res: Response) => {
+  const result = await db.query("SELECT * FROM profile WHERE user_id = $1", [1]);
+  res.json(result.rows[0] || null);
+});
+
 // CREATE profile
 router.post("/", async (req: Request, res: Response) => {
   const { name, email, education } = req.body;

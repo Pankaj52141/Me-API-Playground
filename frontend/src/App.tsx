@@ -101,8 +101,13 @@ function App() {
       });
       workExpApi.fetchData('/work-experience', token).then((data) => data && setWorkExperience(data));
     } else {
-      // No token - clear profile data
-      setProfile(null);
+      // No token - fetch default public profile and links
+      profileApi.fetchData('/profile/public/default').then((data) => data && setProfile(data));
+      profileApi.fetchData('/profile-links/public/default').then((data) => {
+        if (data && data.length > 0) {
+          setProfileLinks(data[0]);
+        }
+      });
       setWorkExperience([]);
     }
   }, [token, isLoggedIn]);
@@ -115,6 +120,7 @@ function App() {
         setCurrentPage(1);
       }
     });
+    skillsApi.fetchData('/skills').then((data) => data && setSkills(data));
   }, []);
 
   // Project loading and pagination
