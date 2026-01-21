@@ -1,6 +1,18 @@
 import { useState, useCallback } from 'react';
 
-const API_URL = import.meta.env.VITE_API_URL;
+// Get API URL from environment variable with fallback
+const getApiUrl = (): string => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl) return envUrl;
+  // Fallback for development
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:3000';
+  }
+  // Fallback to current origin
+  return window.location.origin;
+};
+
+const API_URL = getApiUrl();
 
 export const useApi = <T,>() => {
   const [data, setData] = useState<T | null>(null);
@@ -11,12 +23,19 @@ export const useApi = <T,>() => {
     setLoading(true);
     setError(null);
     try {
-      const headers: any = {};
+      if (!API_URL) {
+        throw new Error('API_URL is not configured. Please set VITE_API_URL environment variable.');
+      }
+      const headers: any = {
+        'Content-Type': 'application/json'
+      };
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
       
-      const response = await fetch(`${API_URL}${url}`, { headers });
+      const fullUrl = `${API_URL}${url}`;
+      console.log('Fetching from:', fullUrl);
+      const response = await fetch(fullUrl, { headers });
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const result = await response.json();
       setData(result);
@@ -24,11 +43,9 @@ export const useApi = <T,>() => {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       setError(message);
-      // Only log if it's not a network error on initial load
+      console.error('API Fetch error:', message, 'URL:', API_URL);
       if (err instanceof TypeError && message.includes('Failed to fetch')) {
-        console.warn('Backend API is not available. Please ensure the backend server is running on ' + API_URL);
-      } else {
-        console.error('Fetch error:', err);
+        console.error(`Cannot connect to backend at ${API_URL}. Make sure the server is running.`);
       }
     } finally {
       setLoading(false);
@@ -40,17 +57,21 @@ export const useApi = <T,>() => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(`${API_URL}${url}`, options);
-        if (!response.ok) throw new Error('Request failed');
+        if (!API_URL) {
+          throw new Error('API_URL is not configured. Please set VITE_API_URL environment variable.');
+        }
+        const fullUrl = `${API_URL}${url}`;
+        console.log('Sending request to:', fullUrl);
+        const response = await fetch(fullUrl, options);
+        if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
         const result = response.headers.get('content-length') === '0' ? null : await response.json();
         return result;
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Unknown error';
         setError(message);
+        console.error('API Request error:', message, 'URL:', API_URL);
         if (err instanceof TypeError && message.includes('Failed to fetch')) {
-          console.warn('Backend API is not available. Please ensure the backend server is running on ' + API_URL);
-        } else {
-          console.error('Request error:', err);
+          console.error(`Cannot connect to backend at ${API_URL}. Make sure the server is running.`);
         }
       } finally {
         setLoading(false);
@@ -59,5 +80,5 @@ export const useApi = <T,>() => {
     []
   );
 
-  return { data, loading, error, fetchData, sendRequest, setData };
+  return { data, loading, error, fetchData, sendRequest, setData, apiUrl: API_URL };
 };

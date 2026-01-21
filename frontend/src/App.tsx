@@ -36,9 +36,9 @@ function App() {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [workExperience, setWorkExperience] = useState<WorkExperience[]>([]);
   const [profileLinks, setProfileLinks] = useState({ 
-    github: 'https://github.com/pankajjaiswal', 
+    github: 'https://github.com/Pankaj52141', 
     linkedin: 'https://linkedin.com/in/pankajjaiswal', 
-    portfolio: 'https://pankajjaiswal.dev' 
+    portfolio: 'https://pankajjaiswal.vercel.app' 
   });
   const [error, setError] = useState<string | null>(null);
 
@@ -430,6 +430,7 @@ function App() {
         <ProfileSection
           profile={profile}
           profileLinks={profileLinks}
+          profileError={profileApi.error}
           loading={profileApi.loading}
           isLoggedIn={isLoggedIn}
           onEdit={openEditProfile}

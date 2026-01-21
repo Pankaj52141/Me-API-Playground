@@ -12,6 +12,7 @@ interface ProfileSectionProps {
   loading: boolean;
   isLoggedIn: boolean;
   profileLinks?: ProfileLink;
+  profileError?: string | null;
   onEdit: () => void;
   onSkillsClick: () => void;
   onProjectsClick: () => void;
@@ -27,6 +28,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
   loading,
   isLoggedIn,
   profileLinks = {},
+  profileError,
   onEdit,
   onSkillsClick,
   onProjectsClick,
@@ -114,7 +116,14 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
         </div>
       ) : (
         <div className="empty-state">
-          No profile data available. Please check your backend connection.
+          {profileError ? (
+            <p style={{ color: '#e74c3c' }}>Error loading profile: {profileError}</p>
+          ) : (
+            <p>No profile data available. Please check your backend connection.</p>
+          )}
+          <p style={{ fontSize: '0.9em', marginTop: '10px', color: '#7f8c8d' }}>
+            Make sure the backend server is running on http://localhost:3000
+          </p>
         </div>
       )}
     </section>
