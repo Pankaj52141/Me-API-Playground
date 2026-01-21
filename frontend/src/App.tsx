@@ -102,7 +102,11 @@ function App() {
       workExpApi.fetchData('/work-experience', token).then((data) => data && setWorkExperience(data));
     } else {
       // No token - fetch default public profile and links
-      profileApi.fetchData('/profile/public/default').then((data) => data && setProfile(data));
+      profileApi.fetchData('/profile/public/default').then((data) => {
+        if (data) {
+          setProfile(data);
+        }
+      });
       profileApi.fetchData('/profile-links/public/default').then((data) => {
         if (data && data.length > 0) {
           setProfileLinks(data[0]);
@@ -112,15 +116,27 @@ function App() {
     }
   }, [token, isLoggedIn]);
 
+  // Fetch projects and skills on mount
   useEffect(() => {
-    projectsApi.fetchData('/projects').then((data) => {
-      if (data) {
-        setAllProjects(data);
-        setProjects(data.slice(0, projectsPerPage));
-        setCurrentPage(1);
+    const fetchInitialData = async () => {
+      try {
+        const projectsData = await projectsApi.fetchData('/projects');
+        if (projectsData) {
+          setAllProjects(projectsData);
+          setProjects(projectsData.slice(0, projectsPerPage));
+          setCurrentPage(1);
+        }
+        
+        const skillsData = await skillsApi.fetchData('/skills');
+        if (skillsData) {
+          setSkills(skillsData);
+        }
+      } catch (error) {
+        console.error('Error fetching initial data:', error);
       }
-    });
-    skillsApi.fetchData('/skills').then((data) => data && setSkills(data));
+    };
+    
+    fetchInitialData();
   }, []);
 
   // Project loading and pagination
