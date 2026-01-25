@@ -11,7 +11,7 @@ ON CONFLICT (user_id) DO NOTHING;
 -- Get profile ID (should be 1 for user_id 1)
 -- Insert profile links for the default user's profile
 INSERT INTO profile_links (profile_id, github, linkedin, portfolio) 
-VALUES (1, 'https://github.com/pankaj', 'https://linkedin.com/in/pankaj', 'https://pankaj.dev')
+VALUES (1, 'https://github.com/Pankaj52141', 'https://linkedin.com/in/pankaj-jaiswal101', 'https://pankajjaiswal.vercel.app')
 ON CONFLICT DO NOTHING;
 
 -- Insert sample skills

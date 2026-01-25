@@ -34,7 +34,7 @@ const seedData = async () => {
     // Insert profile links
     await pool.query(
       "INSERT INTO profile_links (profile_id, github, linkedin, portfolio) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING",
-      [profileId, 'https://github.com/pankaj', 'https://linkedin.com/in/pankaj', 'https://pankaj.dev']
+      [profileId, 'https://github.com/Pankaj52141', 'https://linkedin.com/in/pankaj-jaiswal101', 'https://pankajjaiswal.vercel.app']
     );
     console.log('✓ Profile links inserted');
 
